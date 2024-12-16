@@ -1,4 +1,4 @@
-package com.security_app.security_app;
+package com.security_app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SecurityAppApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SecurityAppApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SecurityAppApplication.class, args);
+    }
 
 }
