@@ -21,7 +21,7 @@ public class ProjectSecurityConfig {
         http.authorizeHttpRequests(requests -> requests.requestMatchers("/products").authenticated());
 
         //Disable form login for rest api
-        http.formLogin(Customizer.withDefaults());
+        http.formLogin(AbstractHttpConfigurer::disable);
 
         http.httpBasic(Customizer.withDefaults());
 
