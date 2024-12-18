@@ -1,6 +1,7 @@
 package com.security_app.config;
 
 
+import com.security_app.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -15,15 +16,22 @@ import org.springframework.security.web.SecurityFilterChain;
 public class ProjectSecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(requests -> requests.requestMatchers("/products").authenticated());
+        // Accept HTTPS ONLY
+        // This is type of security will have problems in lower environment so we need to use profiles to hide this security inside lower environments like testing staging
+        http
+//            .requiresChannel(requestChannelConfig -> requestChannelConfig.anyRequest().requiresSecure())
+//            The request will be forward to 8443
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/products").authenticated()
+                        .requestMatchers("/myAccount").authenticated()
+                );
 
         //Disable form login for rest api
         http.formLogin(AbstractHttpConfigurer::disable);
 
-        http.httpBasic(Customizer.withDefaults());
+        http.httpBasic(httpBasicConfig -> httpBasicConfig.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
 
-        // Disable csrf for rest
-        http.csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
