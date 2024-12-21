@@ -5,7 +5,7 @@ import com.security_app.exceptionhandling.CustomAccessDeniedHandler;
 import com.security_app.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -24,7 +24,10 @@ public class ProjectSecurityConfig {
 //            The request will be forward to 8443
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/products").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/products").hasAuthority("VIEWPRODUCTS")
+                        .requestMatchers(HttpMethod.POST, "/products").hasAuthority("ADDPRODUCT")
+                        .requestMatchers(HttpMethod.DELETE, "/products").hasAuthority("DELETEPRODUCT")
+                        .requestMatchers(HttpMethod.GET, "/ifUserHasAtLeastOneAuthority").hasAnyAuthority("DELETEPRODUCT", "ADDPRODUCT")
                         .requestMatchers("/myAccount").authenticated()
                 );
 

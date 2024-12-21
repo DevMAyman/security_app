@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
+
 
 @Entity
 @Table(name = "custom_user")
@@ -17,4 +19,7 @@ public class CustomUser {
     private String email;
     private String password;
     private String role;
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
+    private Set<Authority> authorities;
 }
