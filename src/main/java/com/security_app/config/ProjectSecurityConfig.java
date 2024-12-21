@@ -1,6 +1,7 @@
 package com.security_app.config;
 
 
+import com.security_app.exceptionhandling.CustomAccessDeniedHandler;
 import com.security_app.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,10 @@ public class ProjectSecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
 
         http.httpBasic(httpBasicConfig -> httpBasicConfig.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
+
+        // The only difference between exceptionHandling and httpbasic is that handling in exception will be globally for any 401 or 403 happened
+        // while in httpbasic it will be invoked only when authentication failed with 403 or 401 during basicauth proceess
+        http.exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer.accessDeniedHandler(new CustomAccessDeniedHandler()));
 
         return http.build();
     }
