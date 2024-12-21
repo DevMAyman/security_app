@@ -3,14 +3,22 @@ package com.security_app.config;
 
 import com.security_app.exceptionhandling.CustomAccessDeniedHandler;
 import com.security_app.exceptionhandling.CustomBasicAuthenticationEntryPoint;
+import com.security_app.filter.JWTTokenGeneratorFilter;
+import com.security_app.filter.JWTTokenValidatorFilter;
+import com.security_app.provideer.CustomUsernamePasswordProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 
 @Configuration
@@ -22,12 +30,21 @@ public class ProjectSecurityConfig {
         http
 //            .requiresChannel(requestChannelConfig -> requestChannelConfig.anyRequest().requiresSecure())
 //            The request will be forward to 8443
+                // By default spring security using session
+//                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(HttpMethod.GET, "/products").hasAuthority("VIEWPRODUCTS")
-                        .requestMatchers(HttpMethod.POST, "/products").hasAuthority("ADDPRODUCT")
-                        .requestMatchers(HttpMethod.DELETE, "/products").hasAuthority("DELETEPRODUCT")
-                        .requestMatchers(HttpMethod.GET, "/ifUserHasAtLeastOneAuthority").hasAnyAuthority("DELETEPRODUCT", "ADDPRODUCT")
+//                        .requestMatchers(HttpMethod.GET, "/products").hasAuthority("VIEWPRODUCTS")
+//                        .requestMatchers(HttpMethod.POST, "/products").hasAuthority("ADDPRODUCT")
+//                        .requestMatchers(HttpMethod.DELETE, "/products").hasAuthority("DELETEPRODUCT")
+                                .requestMatchers(HttpMethod.GET, "/products").hasAnyRole("USER","ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/products").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/products").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/apiLogin").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/ifUserHasAtLeastOneAuthority").hasAnyAuthority("DELETEPRODUCT", "ADDPRODUCT")
                         .requestMatchers("/myAccount").authenticated()
                 );
 
@@ -48,5 +65,15 @@ public class ProjectSecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService,
+                                                       PasswordEncoder passwordEncoder) {
+        CustomUsernamePasswordProvider authenticationProvider =
+                new CustomUsernamePasswordProvider(userDetailsService, passwordEncoder);
+        ProviderManager providerManager = new ProviderManager(authenticationProvider);
+        providerManager.setEraseCredentialsAfterAuthentication(false);
+        return  providerManager;
+    }
 
 }
